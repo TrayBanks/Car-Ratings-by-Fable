@@ -1,0 +1,55 @@
+{
+  "project": "Lifetime Car-Logging App",
+  "version": "1.0",
+  "updated": "2026-08-20",
+  "note": "Original seed data. Canonical scorecard rules and initial three-car leaderboard. See README for rules; see index.html SEED for the live app copy.",
+  "leaderboard": [
+    {
+      "car": "Mercedes-AMG GT R (1st Gen)",
+      "tab": "Supercar",
+      "scores": {
+        "steering": 3,
+        "shifting": 2,
+        "noise": 3,
+        "cockpit": 3,
+        "exotic_bones": 3,
+        "track_intent": 3
+      },
+      "total": 17,
+      "stars": 4.72,
+      "tier": "Analog Immortal"
+    },
+    {
+      "car": "Porsche 911 GT3",
+      "tab": "Sports Car",
+      "scores": {
+        "steering": 3,
+        "shifting": 2,
+        "noise": 3,
+        "cockpit": 3,
+        "tossability": 3,
+        "brakes": 3
+      },
+      "total": 16,
+      "stars": 4.44,
+      "tier": "Precision Weapon",
+      "flag": "scores sum to 17 but logged total is 16 - pending ruling"
+    },
+    {
+      "car": "Chevrolet Corvette C8",
+      "tab": "Sports Car",
+      "scores": {
+        "steering": 2,
+        "shifting": 2,
+        "noise": 3,
+        "cockpit": 2.5,
+        "tossability": 3,
+        "brakes": 2
+      },
+      "total": 14.5,
+      "stars": 4.02,
+      "tier": "Precision Weapon",
+      "flag": "cockpit 2.5 breaks 1/2/3 integer scale - pending ruling"
+    }
+  ]
+}
