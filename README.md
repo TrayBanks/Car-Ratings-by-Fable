@@ -14,6 +14,11 @@ Built as a **PWA** - installs to the home screen on both **iPhone** and **Androi
 | **2 - Good** | Fun, but missing something / felt isolated |
 | **3 - Holy Hell!** | Goosebumps. Unforgettable. Pure physical feedback |
 
+**Half-points are legal.** When a car genuinely sits between two grades, tap the
+smaller dashed **1.5** or **2.5** button between them. They are deliberately
+secondary - the eye still lands on 1 / 2 / 3 first, so the gut-check stays fast.
+Use them when the honest answer is "between", not to avoid committing.
+
 **Questions 1-4 (universal):** Steering Feel / Shifting / Noise / Cockpit Tactility
 **Questions 5-6 (segment-specific):** chassis character + track/braking intent, worded per tab.
 
