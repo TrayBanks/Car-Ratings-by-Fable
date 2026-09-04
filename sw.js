@@ -1,5 +1,5 @@
 /* Car Ratings by Fable - service worker (cache-first app shell) */
-const CACHE = 'fable-ratings-v1';
+const CACHE = 'fable-ratings-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg'];
 
 self.addEventListener('install', (e) => {
