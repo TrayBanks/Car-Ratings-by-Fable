@@ -105,13 +105,19 @@
   .q{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; margin-top:12px;}
   .q .qt{font-weight:800; font-size:.92rem; margin-bottom:3px;}
   .q .qs{color:var(--dim); font-size:.78rem; margin-bottom:9px;}
-  .opts{display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px;}
+  .opts{display:grid; grid-template-columns:1fr .6fr 1fr .6fr 1fr; gap:6px;}
   .opt{padding:10px 4px; border-radius:11px; border:1px solid var(--line); background:var(--card2);
     color:var(--dim); font-weight:800; font-size:.78rem; cursor:pointer; text-align:center;}
   .opt b{display:block; font-size:1.05rem; margin-bottom:1px;}
+  /* half-steps: visually secondary so the gut-check stays a 3-way glance */
+  .opt.half{background:transparent; border-style:dashed; color:#69728a; padding:10px 0;}
+  .opt.half b{font-size:.9rem; margin-bottom:0;}
+  .opt.half .hw{font-size:.5rem; letter-spacing:.04em; text-transform:uppercase; opacity:.75;}
   .opt.sel1{background:var(--red); border-color:var(--red); color:#1e0808;}
   .opt.sel2{background:var(--gold); border-color:var(--gold); color:#171204;}
   .opt.sel3{background:var(--green); border-color:var(--green); color:#062012;}
+  .opt.sel15{background:#ff8a4d; border-color:#ff8a4d; color:#1e0d04; border-style:solid;}
+  .opt.sel25{background:#b9d94a; border-color:#b9d94a; color:#101704; border-style:solid;}
 
   .live{position:sticky; bottom:0; margin-top:16px; background:var(--card2); border:1px solid var(--line);
     border-radius:16px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px;}
@@ -216,7 +222,16 @@ const UNIVERSAL = [
   {t:'Noise',s:'Real and organic — or fake / muffled?'},
   {t:'Cockpit Tactility',s:'Physical buttons — or cheap touchscreens?'}
 ];
-const OPT_LABELS = [{n:1,w:'Nah'},{n:2,w:'Good'},{n:3,w:'Holy Hell!'}];
+/* 3-way gut-check, with half-steps for when it genuinely sits between two.
+   Halves render smaller + dashed so the eye still lands on 1 / 2 / 3 first. */
+const OPT_LABELS = [
+  {n:1,   w:'Nah',        half:false},
+  {n:1.5, w:'between',    half:true},
+  {n:2,   w:'Good',       half:false},
+  {n:2.5, w:'between',    half:true},
+  {n:3,   w:'Holy Hell!', half:false}
+];
+const selClass = n => 'sel' + String(n).replace('.','');   // 2.5 -> sel25
 
 function tierFor(stars){
   if (stars >= 4.5) return {name:'Analog Immortal', cls:'tier-immortal'};
@@ -225,6 +240,10 @@ function tierFor(stars){
   return {name:'Appliance', cls:'tier-appliance'};
 }
 function starsFrom(total){ return Math.round((total/3.6)*100)/100; }
+/* colour band for a score chip: 2.5 reads as "gold", not green */
+function bandOf(s){ return s >= 3 ? 's3' : s >= 2 ? 's2' : 's1'; }
+/* 17 -> "17", 14.5 -> "14.5" */
+function fmt(n){ return Number(n).toFixed(1).replace(/\.0$/,''); }
 
 /* ---------------- SEED DATA (initial leaderboard) ---------------- */
 const SEED = [
@@ -246,17 +265,26 @@ const SEED = [
     id:'chevy-c8', name:'Chevrolet Corvette C8', segment:'Sports Car',
     scores:[2,2,3,2.5,3,2], totalOverride:null, provisionalShift:true,
     notes:"The car I was originally leaning toward buying. Mid-engine turn-in bite is great and the V8 noise is excellent, but it lost points on pure feel. Steering felt lighter and more insulated from the road than the AMG. The cockpit 'wall of buttons' was distracting, and brake-by-wire felt synthetic under hard threshold braking.",
-    flags:["Shift score provisional — track day forced auto mode, never pulled the paddles.",
-           "Cockpit logged at 2.5 — half-points aren't in the official 1/2/3 scale yet. Pending ruling."]
+    flags:["Shift score provisional — track day forced auto mode, never pulled the paddles."]
   }
 ];
 
 /* ---------------- STORAGE ---------------- */
 let cars = [];
+
+/* Half-points became legal in v2. Anything already saved under the old rules
+   carries a "pending ruling" flag about it — strip that, keep everything else. */
+function migrate(list){
+  list.forEach(c=>{
+    if (Array.isArray(c.flags)) c.flags = c.flags.filter(f=>!/half-point/i.test(f));
+  });
+  return list;
+}
+
 function load(){
   try{
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw){ cars = JSON.parse(raw); return; }
+    if (raw){ cars = migrate(JSON.parse(raw)); save(); return; }
   }catch(e){ /* storage unavailable — run in memory */ }
   cars = JSON.parse(JSON.stringify(SEED));
   save();
@@ -320,11 +348,11 @@ function renderBoard(){
       <div class="row2">
         <span class="chip ${tier.cls}">${tier.name}</span>
         <span class="chip">${esc(c.segment)}</span>
-        <span class="chip">${c._total} / 18</span>
+        <span class="chip">${fmt(c._total)} / 18</span>
         ${hasFlags ? '<span class="chip flagchip">⚠️ '+c.flags.length+'</span>' : ''}
       </div>
       <div class="scorebar">
-        ${c.scores.map((s,j)=>`<div class="sq s${Math.round(s)}"><b>${s}</b><span>${labels[j]}</span></div>`).join('')}
+        ${c.scores.map((s,j)=>`<div class="sq ${bandOf(s)}"><b>${fmt(s)}</b><span>${labels[j]}</span></div>`).join('')}
       </div>
       <div class="notes">
         ${c.notes ? '<div>'+esc(c.notes)+'</div>' : '<div>No notes yet.</div>'}
@@ -403,8 +431,9 @@ function renderQuestions(){
     opts.className = 'opts';
     OPT_LABELS.forEach(o=>{
       const b = document.createElement('button');
-      b.className = 'opt' + (fScores[i]===o.n ? ' sel'+o.n : '');
-      b.innerHTML = `<b>${o.n}</b>${o.w}`;
+      b.className = 'opt' + (o.half ? ' half' : '') + (fScores[i]===o.n ? ' '+selClass(o.n) : '');
+      b.innerHTML = o.half ? `<b>${o.n}</b><span class="hw">${o.w}</span>` : `<b>${o.n}</b>${o.w}`;
+      b.setAttribute('aria-label', o.half ? `${o.n}, between` : `${o.n}, ${o.w}`);
       b.onclick = ()=>{ fScores[i]=o.n; renderQuestions(); updateLive(); };
       opts.appendChild(b);
     });
@@ -417,7 +446,7 @@ function updateLive(){
   const done = fScores.every(s=>s!=null);
   const total = fScores.reduce((a,b)=>a+(b||0),0);
   const stars = starsFrom(total);
-  document.getElementById('liveTotal').textContent = total + ' / 18';
+  document.getElementById('liveTotal').textContent = fmt(total) + ' / 18';
   document.getElementById('liveStars').textContent = done ? stars.toFixed(2)+' ★' : '—';
   document.getElementById('liveTier').textContent = done ? tierFor(stars).name : '—';
   const nameOk = document.getElementById('fName').value.trim().length > 0;
