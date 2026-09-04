@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Car Ratings by Fable</title>
+<meta name="description" content="Lifetime car-experience leaderboard with the 6-question Gut-Check Scorecard.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0d0f14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fable Ratings">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<style>
+  :root{
+    --bg:#0d0f14; --card:#161a22; --card2:#1d2230; --line:#2a3040;
+    --text:#f2f4f8; --dim:#9aa3b5;
+    --gold:#ffc93c; --red:#ff4d4d; --green:#3ddc84; --blue:#5aa7ff;
+    --immortal:#ffc93c; --weapon:#ff6b4d; --commuter:#5aa7ff; --appliance:#8a93a5;
+    --safe-top:env(safe-area-inset-top,0px); --safe-bot:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overscroll-behavior-y:contain;}
+  body{padding-bottom:calc(90px + var(--safe-bot));}
+
+  header{position:sticky; top:0; z-index:20; background:linear-gradient(180deg,#0d0f14 80%,rgba(13,15,20,0));
+    padding:calc(14px + var(--safe-top)) 16px 6px;}
+  .brand{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  h1{font-size:1.15rem; margin:0; letter-spacing:.06em; font-weight:800; text-transform:uppercase;}
+  h1 .fable{color:var(--gold);}
+  .checker{font-size:1.1rem;}
+  .iconbtn{background:var(--card); border:1px solid var(--line); color:var(--dim);
+    border-radius:12px; padding:8px 12px; font-size:1rem; cursor:pointer;}
+
+  .tabs{display:flex; gap:8px; overflow-x:auto; padding:10px 0 8px; scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{flex:0 0 auto; padding:9px 16px; border-radius:999px; border:1px solid var(--line);
+    background:var(--card); color:var(--dim); font-weight:700; font-size:.85rem; cursor:pointer;
+    text-transform:uppercase; letter-spacing:.04em;}
+  .tab.active{background:var(--gold); color:#12100a; border-color:var(--gold);}
+
+  main{padding:4px 16px 0;}
+  .empty{text-align:center; color:var(--dim); padding:48px 20px; font-weight:600;}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:18px;
+    padding:14px 14px 12px; margin-bottom:12px;}
+  .row1{display:flex; align-items:center; gap:10px;}
+  .rank{flex:0 0 auto; width:36px; height:36px; border-radius:10px; display:flex; align-items:center;
+    justify-content:center; font-weight:900; font-size:1rem; background:var(--card2); color:var(--dim);}
+  .rank.r1{background:var(--gold); color:#141005;}
+  .rank.r2{background:#c8d0dd; color:#141821;}
+  .rank.r3{background:#b0764a; color:#1c1005;}
+  .name{font-weight:800; font-size:1.02rem; line-height:1.25; flex:1;}
+  .stars{flex:0 0 auto; text-align:right;}
+  .starnum{font-size:1.25rem; font-weight:900; color:var(--gold);}
+  .starnum small{font-size:.8rem; color:var(--dim); font-weight:700;}
+  .row2{display:flex; align-items:center; gap:6px; margin-top:8px; flex-wrap:wrap;}
+  .chip{font-size:.7rem; font-weight:800; padding:4px 9px; border-radius:999px; letter-spacing:.04em;
+    text-transform:uppercase; border:1px solid var(--line); color:var(--dim); background:var(--card2);}
+  .chip.tier-immortal{color:#141005; background:var(--immortal); border-color:var(--immortal);}
+  .chip.tier-weapon{color:#1c0d08; background:var(--weapon); border-color:var(--weapon);}
+  .chip.tier-commuter{color:#0a1524; background:var(--commuter); border-color:var(--commuter);}
+  .chip.tier-appliance{color:#12151b; background:var(--appliance); border-color:var(--appliance);}
+  .chip.flagchip{color:#3a2b00; background:#ffde7a; border-color:#ffde7a;}
+  .scorebar{display:grid; grid-template-columns:repeat(6,1fr); gap:5px; margin-top:10px;}
+  .sq{background:var(--card2); border-radius:9px; text-align:center; padding:6px 0 5px;}
+  .sq b{display:block; font-size:.95rem;}
+  .sq span{display:block; font-size:.56rem; color:var(--dim); font-weight:700; letter-spacing:.02em; text-transform:uppercase;}
+  .sq.s3 b{color:var(--green);} .sq.s2 b{color:var(--gold);} .sq.s1 b{color:var(--red);}
+  .notes{display:none; margin-top:10px; border-top:1px dashed var(--line); padding-top:10px;
+    color:var(--dim); font-size:.88rem; line-height:1.45;}
+  .card.open .notes{display:block;}
+  .notes .flagline{color:#ffde7a; font-weight:700; margin-top:8px; font-size:.8rem;}
+  .noteactions{margin-top:10px; display:flex; gap:8px;}
+  .smallbtn{border:1px solid var(--line); background:var(--card2); color:var(--text);
+    padding:7px 14px; border-radius:10px; font-weight:700; font-size:.8rem; cursor:pointer;}
+  .smallbtn.danger{color:var(--red);}
+  .tapmore{margin-top:8px; text-align:center; color:var(--dim); font-size:.68rem; font-weight:700;
+    letter-spacing:.05em; text-transform:uppercase;}
+
+  .fab{position:fixed; right:18px; bottom:calc(18px + var(--safe-bot)); z-index:30;
+    width:60px; height:60px; border-radius:20px; border:none; background:var(--gold); color:#141005;
+    font-size:2rem; font-weight:900; cursor:pointer; box-shadow:0 8px 24px rgba(255,201,60,.35);
+    display:flex; align-items:center; justify-content:center; line-height:1;}
+
+  .sheet{position:fixed; inset:0; z-index:40; background:var(--bg); display:none;
+    overflow-y:auto; padding:calc(14px + var(--safe-top)) 16px calc(30px + var(--safe-bot));}
+  .sheet.show{display:block;}
+  .sheethead{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .sheethead h2{margin:0; font-size:1.05rem; text-transform:uppercase; letter-spacing:.05em;}
+  label.f{display:block; font-weight:800; font-size:.78rem; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--dim); margin:16px 0 7px;}
+  input[type=text], textarea{width:100%; background:var(--card); border:1px solid var(--line);
+    color:var(--text); border-radius:12px; padding:12px 13px; font-size:1rem; font-family:inherit;}
+  textarea{min-height:90px; resize:vertical;}
+  .segrow{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .segbtn{padding:12px 8px; border-radius:12px; border:1px solid var(--line); background:var(--card);
+    color:var(--dim); font-weight:800; font-size:.82rem; cursor:pointer; text-transform:uppercase;}
+  .segbtn.active{background:var(--blue); color:#08131f; border-color:var(--blue);}
+
+  .q{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; margin-top:12px;}
+  .q .qt{font-weight:800; font-size:.92rem; margin-bottom:3px;}
+  .q .qs{color:var(--dim); font-size:.78rem; margin-bottom:9px;}
+  .opts{display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px;}
+  .opt{padding:10px 4px; border-radius:11px; border:1px solid var(--line); background:var(--card2);
+    color:var(--dim); font-weight:800; font-size:.78rem; cursor:pointer; text-align:center;}
+  .opt b{display:block; font-size:1.05rem; margin-bottom:1px;}
+  .opt.sel1{background:var(--red); border-color:var(--red); color:#1e0808;}
+  .opt.sel2{background:var(--gold); border-color:var(--gold); color:#171204;}
+  .opt.sel3{background:var(--green); border-color:var(--green); color:#062012;}
+
+  .live{position:sticky; bottom:0; margin-top:16px; background:var(--card2); border:1px solid var(--line);
+    border-radius:16px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .live .lt{font-size:.72rem; color:var(--dim); font-weight:800; text-transform:uppercase; letter-spacing:.05em;}
+  .live .lv{font-size:1.15rem; font-weight:900;}
+  .live .lv.gold{color:var(--gold);}
+  .savebtn{width:100%; margin-top:14px; padding:16px; border-radius:14px; border:none;
+    background:var(--green); color:#04140b; font-size:1.02rem; font-weight:900; cursor:pointer;
+    text-transform:uppercase; letter-spacing:.05em;}
+  .savebtn:disabled{background:var(--card2); color:var(--dim);}
+  .flagbox{display:flex; align-items:center; gap:10px; margin-top:14px; background:var(--card);
+    border:1px solid var(--line); border-radius:12px; padding:12px;}
+  .flagbox input{width:22px; height:22px; accent-color:var(--gold);}
+  .flagbox span{font-size:.85rem; color:var(--dim); font-weight:600;}
+
+  .menu{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.6); display:none; align-items:flex-end;}
+  .menu.show{display:flex;}
+  .menucard{background:var(--card); width:100%; border-radius:20px 20px 0 0; padding:18px 18px calc(24px + var(--safe-bot));}
+  .menucard button{width:100%; margin-top:10px; padding:14px; border-radius:12px; border:1px solid var(--line);
+    background:var(--card2); color:var(--text); font-weight:800; font-size:.95rem; cursor:pointer;}
+  .menucard .note{color:var(--dim); font-size:.78rem; margin:4px 0 2px; line-height:1.4;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1><span class="checker">🏁</span> Car Ratings <span class="fable">by Fable</span></h1>
+    <button class="iconbtn" id="menuBtn" aria-label="Menu">⋯</button>
+  </div>
+  <div class="tabs" id="tabs"></div>
+</header>
+
+<main id="board"></main>
+
+<button class="fab" id="addBtn" aria-label="Add car">＋</button>
+
+<!-- ADD / EDIT SHEET -->
+<div class="sheet" id="sheet">
+  <div class="sheethead">
+    <h2 id="sheetTitle">Log a Car</h2>
+    <button class="iconbtn" id="closeSheet">✕</button>
+  </div>
+
+  <label class="f">Car Name</label>
+  <input type="text" id="fName" placeholder="e.g. Ferrari 296 GTB" autocomplete="off">
+
+  <label class="f">Segment Tab</label>
+  <div class="segrow" id="segRow"></div>
+
+  <div id="questions"></div>
+
+  <div class="flagbox">
+    <input type="checkbox" id="fProvisional">
+    <span><b>Retest flag:</b> auto-only test day — shift score is provisional</span>
+  </div>
+
+  <label class="f">Memory-Jogger Notes</label>
+  <textarea id="fNotes" placeholder="Raw impressions. What gave you goosebumps? What felt fake?"></textarea>
+
+  <div class="live">
+    <div><div class="lt">Total</div><div class="lv" id="liveTotal">0 / 18</div></div>
+    <div><div class="lt">Stars</div><div class="lv gold" id="liveStars">—</div></div>
+    <div><div class="lt">Tier</div><div class="lv" id="liveTier" style="font-size:.85rem">—</div></div>
+  </div>
+
+  <button class="savebtn" id="saveBtn" disabled>Save to Leaderboard</button>
+</div>
+
+<!-- MENU -->
+<div class="menu" id="menu">
+  <div class="menucard">
+    <h2 style="margin:0 0 4px; font-size:1rem;">Data</h2>
+    <p class="note">Your log lives on this device. Export a backup anytime — import it on a new phone.</p>
+    <button id="exportBtn">⬇️ Export Backup (JSON)</button>
+    <button id="importBtn">⬆️ Import Backup</button>
+    <input type="file" id="importFile" accept=".json" style="display:none">
+    <button id="closeMenu">Close</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ================= CAR RATINGS BY FABLE — MVP ================= */
+
+const STORE_KEY = 'fable_car_log_v1';
+const SEGMENTS = ['Supercar','Sports Car','GT Car','Other'];
+
+const SEG_QUESTIONS = {
+  'Supercar':   [{t:'Exotic Bones',s:'Chassis drama, proportions, tossability — does it feel exotic?'},
+                 {t:'Track Intent',s:'Braking bite + pedal tactility — built for war?'}],
+  'Sports Car': [{t:'Tossability',s:'Can you throw it hard and trust it?'},
+                 {t:'Brakes',s:'Pedal feel + threshold braking confidence?'}],
+  'GT Car':     [{t:'GT Bones',s:'Long-haul composure with real chassis character?'},
+                 {t:'Braking Confidence',s:'Pedal tactility when you lean on it?'}],
+  'Other':      [{t:'Chassis Character',s:'Does the platform have a soul?'},
+                 {t:'Stopping Feel',s:'Brake pedal honesty under pressure?'}]
+};
+const UNIVERSAL = [
+  {t:'Steering Feel',s:'Quick, weighted, direct — or light and numb?'},
+  {t:'Shifting',s:'Crisp + mechanical gear changes?'},
+  {t:'Noise',s:'Real and organic — or fake / muffled?'},
+  {t:'Cockpit Tactility',s:'Physical buttons — or cheap touchscreens?'}
+];
+const OPT_LABELS = [{n:1,w:'Nah'},{n:2,w:'Good'},{n:3,w:'Holy Hell!'}];
+
+function tierFor(stars){
+  if (stars >= 4.5) return {name:'Analog Immortal', cls:'tier-immortal'};
+  if (stars >= 3.5) return {name:'Precision Weapon', cls:'tier-weapon'};
+  if (stars >= 2.0) return {name:'Optimized Commuter', cls:'tier-commuter'};
+  return {name:'Appliance', cls:'tier-appliance'};
+}
+function starsFrom(total){ return Math.round((total/3.6)*100)/100; }
+
+/* ---------------- SEED DATA (initial leaderboard) ---------------- */
+const SEED = [
+  {
+    id:'amg-gt-r', name:'Mercedes-AMG GT R (1st Gen)', segment:'Supercar',
+    scores:[3,2,3,3,3,3], totalOverride:null, provisionalShift:true,
+    notes:"The steering was the most tactile and responsive of the bunch. It felt distinctively quick, heavily weighted, and completely direct compared to the others which felt much lighter. It left an unforgettable, raw physical impression.",
+    flags:["Shift score provisional — track day forced auto mode, never pulled the paddles.",
+           "Spec note: C190 rack is electromechanical, tuned to feel hydraulic. Seat-of-pants score stands."]
+  },
+  {
+    id:'porsche-911-gt3', name:'Porsche 911 GT3', segment:'Sports Car',
+    scores:[3,2,3,3,3,3], totalOverride:16, provisionalShift:true,
+    notes:"An absolute precision tracking weapon. Completely lightweight, physics-defying, incredibly easy to throw hard into corners. Steering + chassis feel top-tier, though noticeably lighter than the heavy AMG handshake.",
+    flags:["Shift score provisional — track day forced auto mode, never pulled the paddles.",
+           "MATH FLAG: logged total was 16.0 (4.44★) but the 6 scores sum to 17. One score needs a ruling — edit this car to resolve. Total pinned at 16 until then."]
+  },
+  {
+    id:'chevy-c8', name:'Chevrolet Corvette C8', segment:'Sports Car',
+    scores:[2,2,3,2.5,3,2], totalOverride:null, provisionalShift:true,
+    notes:"The car I was originally leaning toward buying. Mid-engine turn-in bite is great and the V8 noise is excellent, but it lost points on pure feel. Steering felt lighter and more insulated from the road than the AMG. The cockpit 'wall of buttons' was distracting, and brake-by-wire felt synthetic under hard threshold braking.",
+    flags:["Shift score provisional — track day forced auto mode, never pulled the paddles.",
+           "Cockpit logged at 2.5 — half-points aren't in the official 1/2/3 scale yet. Pending ruling."]
+  }
+];
+
+/* ---------------- STORAGE ---------------- */
+let cars = [];
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw){ cars = JSON.parse(raw); return; }
+  }catch(e){ /* storage unavailable — run in memory */ }
+  cars = JSON.parse(JSON.stringify(SEED));
+  save();
+}
+function save(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(cars)); }catch(e){ /* in-memory only */ }
+}
+
+/* ---------------- LEADERBOARD ---------------- */
+let activeTab = 'All';
+const TABS = ['All', ...SEGMENTS];
+
+function totalOf(c){
+  if (c.totalOverride != null) return c.totalOverride;
+  return c.scores.reduce((a,b)=>a+b,0);
+}
+
+function renderTabs(){
+  const el = document.getElementById('tabs');
+  el.innerHTML = '';
+  TABS.forEach(t=>{
+    const b = document.createElement('button');
+    b.className = 'tab' + (t===activeTab ? ' active':'');
+    b.textContent = t;
+    b.onclick = ()=>{ activeTab = t; renderTabs(); renderBoard(); };
+    el.appendChild(b);
+  });
+}
+
+function scoreLabels(seg){
+  const q = SEG_QUESTIONS[seg] || SEG_QUESTIONS['Other'];
+  return ['Steer','Shift','Noise','Cockpit', q[0].t.split(' ')[0], q[1].t.split(' ')[0]];
+}
+
+function renderBoard(){
+  const el = document.getElementById('board');
+  el.innerHTML = '';
+  const list = cars
+    .filter(c => activeTab==='All' || c.segment===activeTab)
+    .map(c => ({...c, _total: totalOf(c), _stars: starsFrom(totalOf(c))}))
+    .sort((a,b)=> b._stars - a._stars || b._total - a._total);
+
+  if (!list.length){
+    el.innerHTML = '<div class="empty">Nothing logged in this tab yet.<br>Hit ＋ after your next drive.</div>';
+    return;
+  }
+
+  list.forEach((c,i)=>{
+    const tier = tierFor(c._stars);
+    const labels = scoreLabels(c.segment);
+    const card = document.createElement('div');
+    card.className = 'card';
+    const rankCls = i===0?'r1':i===1?'r2':i===2?'r3':'';
+    const hasFlags = c.flags && c.flags.length;
+    card.innerHTML = `
+      <div class="row1">
+        <div class="rank ${rankCls}">${i+1}</div>
+        <div class="name">${esc(c.name)}</div>
+        <div class="stars"><div class="starnum">${c._stars.toFixed(2)}<small> ★</small></div></div>
+      </div>
+      <div class="row2">
+        <span class="chip ${tier.cls}">${tier.name}</span>
+        <span class="chip">${esc(c.segment)}</span>
+        <span class="chip">${c._total} / 18</span>
+        ${hasFlags ? '<span class="chip flagchip">⚠️ '+c.flags.length+'</span>' : ''}
+      </div>
+      <div class="scorebar">
+        ${c.scores.map((s,j)=>`<div class="sq s${Math.round(s)}"><b>${s}</b><span>${labels[j]}</span></div>`).join('')}
+      </div>
+      <div class="notes">
+        ${c.notes ? '<div>'+esc(c.notes)+'</div>' : '<div>No notes yet.</div>'}
+        ${hasFlags ? c.flags.map(f=>'<div class="flagline">⚠️ '+esc(f)+'</div>').join('') : ''}
+        <div class="noteactions">
+          <button class="smallbtn" data-edit="${c.id}">✏️ Edit</button>
+          <button class="smallbtn danger" data-del="${c.id}">🗑 Delete</button>
+        </div>
+      </div>
+      <div class="tapmore">tap for notes</div>`;
+    card.addEventListener('click', (ev)=>{
+      if (ev.target.dataset.edit){ openSheet(ev.target.dataset.edit); return; }
+      if (ev.target.dataset.del){ delCar(ev.target.dataset.del); return; }
+      card.classList.toggle('open');
+      card.querySelector('.tapmore').textContent = card.classList.contains('open') ? 'tap to close' : 'tap for notes';
+    });
+    el.appendChild(card);
+  });
+}
+
+function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+function delCar(id){
+  const c = cars.find(x=>x.id===id);
+  if (!c) return;
+  if (confirm('Delete "'+c.name+'" from the leaderboard?')){
+    cars = cars.filter(x=>x.id!==id);
+    save(); renderBoard();
+  }
+}
+
+/* ---------------- ADD / EDIT SHEET ---------------- */
+let editingId = null;
+let fSeg = 'Supercar';
+let fScores = [null,null,null,null,null,null];
+
+function questionSet(seg){
+  return [...UNIVERSAL, ...(SEG_QUESTIONS[seg] || SEG_QUESTIONS['Other'])];
+}
+
+function openSheet(id){
+  editingId = id || null;
+  const c = id ? cars.find(x=>x.id===id) : null;
+  document.getElementById('sheetTitle').textContent = c ? 'Edit: '+c.name : 'Log a Car';
+  document.getElementById('fName').value = c ? c.name : '';
+  fSeg = c ? c.segment : 'Supercar';
+  fScores = c ? c.scores.slice() : [null,null,null,null,null,null];
+  document.getElementById('fProvisional').checked = c ? !!c.provisionalShift : false;
+  document.getElementById('fNotes').value = c ? (c.notes||'') : '';
+  renderSeg(); renderQuestions(); updateLive();
+  document.getElementById('sheet').classList.add('show');
+  window.scrollTo(0,0);
+}
+function closeSheet(){ document.getElementById('sheet').classList.remove('show'); }
+
+function renderSeg(){
+  const el = document.getElementById('segRow');
+  el.innerHTML = '';
+  SEGMENTS.forEach(s=>{
+    const b = document.createElement('button');
+    b.className = 'segbtn' + (s===fSeg?' active':'');
+    b.textContent = s;
+    b.onclick = ()=>{ fSeg = s; renderSeg(); renderQuestions(); };
+    el.appendChild(b);
+  });
+}
+
+function renderQuestions(){
+  const el = document.getElementById('questions');
+  el.innerHTML = '';
+  questionSet(fSeg).forEach((q,i)=>{
+    const box = document.createElement('div');
+    box.className = 'q';
+    box.innerHTML = `<div class="qt">Q${i+1} — ${q.t}</div><div class="qs">${q.s}</div>`;
+    const opts = document.createElement('div');
+    opts.className = 'opts';
+    OPT_LABELS.forEach(o=>{
+      const b = document.createElement('button');
+      b.className = 'opt' + (fScores[i]===o.n ? ' sel'+o.n : '');
+      b.innerHTML = `<b>${o.n}</b>${o.w}`;
+      b.onclick = ()=>{ fScores[i]=o.n; renderQuestions(); updateLive(); };
+      opts.appendChild(b);
+    });
+    box.appendChild(opts);
+    el.appendChild(box);
+  });
+}
+
+function updateLive(){
+  const done = fScores.every(s=>s!=null);
+  const total = fScores.reduce((a,b)=>a+(b||0),0);
+  const stars = starsFrom(total);
+  document.getElementById('liveTotal').textContent = total + ' / 18';
+  document.getElementById('liveStars').textContent = done ? stars.toFixed(2)+' ★' : '—';
+  document.getElementById('liveTier').textContent = done ? tierFor(stars).name : '—';
+  const nameOk = document.getElementById('fName').value.trim().length > 0;
+  document.getElementById('saveBtn').disabled = !(done && nameOk);
+}
+
+function saveCar(){
+  const name = document.getElementById('fName').value.trim();
+  if (!name || fScores.some(s=>s==null)) return;
+  const provisional = document.getElementById('fProvisional').checked;
+  const notes = document.getElementById('fNotes').value.trim();
+  const flags = provisional ? ['Shift score provisional — auto-only test. Flagged for retest.'] : [];
+
+  if (editingId){
+    const c = cars.find(x=>x.id===editingId);
+    c.name=name; c.segment=fSeg; c.scores=fScores.slice();
+    c.provisionalShift=provisional; c.notes=notes;
+    c.totalOverride=null; // editing resolves any pinned total
+    c.flags = flags;
+  } else {
+    cars.push({
+      id: 'car-'+Date.now(), name, segment:fSeg, scores:fScores.slice(),
+      totalOverride:null, provisionalShift:provisional, notes, flags
+    });
+  }
+  save(); closeSheet(); renderBoard();
+}
+
+/* ---------------- EXPORT / IMPORT ---------------- */
+function exportData(){
+  const blob = new Blob([JSON.stringify({app:'Car Ratings by Fable', version:1, exported:new Date().toISOString(), cars}, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'fable-car-log-backup.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function importData(file){
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const d = JSON.parse(r.result);
+      if (!Array.isArray(d.cars)) throw new Error('bad file');
+      cars = d.cars; save(); renderBoard();
+      alert('Imported '+cars.length+' cars. Leaderboard updated.');
+    }catch(e){ alert('That file didn\'t look like a Fable backup.'); }
+  };
+  r.readAsText(file);
+}
+
+/* ---------------- WIRE UP ---------------- */
+document.getElementById('addBtn').onclick = ()=>openSheet(null);
+document.getElementById('closeSheet').onclick = closeSheet;
+document.getElementById('saveBtn').onclick = saveCar;
+document.getElementById('fName').addEventListener('input', updateLive);
+document.getElementById('menuBtn').onclick = ()=>document.getElementById('menu').classList.add('show');
+document.getElementById('closeMenu').onclick = ()=>document.getElementById('menu').classList.remove('show');
+document.getElementById('exportBtn').onclick = exportData;
+document.getElementById('importBtn').onclick = ()=>document.getElementById('importFile').click();
+document.getElementById('importFile').addEventListener('change', e=>{ if(e.target.files[0]) importData(e.target.files[0]); e.target.value=''; });
+document.getElementById('menu').addEventListener('click', e=>{ if(e.target.id==='menu') e.target.classList.remove('show'); });
+
+load(); renderTabs(); renderBoard();
+
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
