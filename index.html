@@ -256,10 +256,9 @@ const SEED = [
   },
   {
     id:'porsche-911-gt3', name:'Porsche 911 GT3', segment:'Sports Car',
-    scores:[3,2,3,3,3,3], totalOverride:16, provisionalShift:true,
+    scores:[2.5,2,3,3,3,3], totalOverride:null, provisionalShift:true,
     notes:"An absolute precision tracking weapon. Completely lightweight, physics-defying, incredibly easy to throw hard into corners. Steering + chassis feel top-tier, though noticeably lighter than the heavy AMG handshake.",
-    flags:["Shift score provisional — track day forced auto mode, never pulled the paddles.",
-           "MATH FLAG: logged total was 16.0 (4.44★) but the 6 scores sum to 17. One score needs a ruling — edit this car to resolve. Total pinned at 16 until then."]
+    flags:["Shift score provisional — track day forced auto mode, never pulled the paddles."]
   },
   {
     id:'chevy-c8', name:'Chevrolet Corvette C8', segment:'Sports Car',
@@ -272,11 +271,20 @@ const SEED = [
 /* ---------------- STORAGE ---------------- */
 let cars = [];
 
-/* Half-points became legal in v2. Anything already saved under the old rules
-   carries a "pending ruling" flag about it — strip that, keep everything else. */
+/* v2 migrations for logs saved under the old rules.
+   1. Half-points are legal now — drop the "pending ruling" flag about them.
+   2. GT3 ruling: its scores summed to 17 but the logged total was 16. Resolved by
+      dropping Steering 3 -> 2.5 ("top-tier, though noticeably lighter than the AMG"),
+      which is also what separates it from the C8's 2. Total 16.5, override released.
+   Only touches the seeded car at its known-stale values — never a car you edited. */
 function migrate(list){
   list.forEach(c=>{
     if (Array.isArray(c.flags)) c.flags = c.flags.filter(f=>!/half-point/i.test(f));
+    if (c.id === 'porsche-911-gt3' && c.totalOverride === 16 && c.scores[0] === 3){
+      c.scores = [2.5, 2, 3, 3, 3, 3];
+      c.totalOverride = null;
+      c.flags = (c.flags || []).filter(f=>!/MATH FLAG/i.test(f));
+    }
   });
   return list;
 }
