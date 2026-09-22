@@ -1,7 +1,7 @@
 {
   "project": "Lifetime Car-Logging App",
   "version": "2.0",
-  "updated": "2026-09-09",
+  "updated": "2026-09-22",
   "note": "Archival seed data + decision log. The live app's working copy is the SEED array in index.html; this file is the paper trail.",
   "scale": {
     "1": "Nah - boring, fake, or video-game feel",
@@ -85,11 +85,21 @@
         "Steering -> 2: reproduced the original 16.0 / 4.44 exactly, but graded the GT3 rack level with the C8's, which the notes rank it above.",
         "Accept 17: would have tied the GT3 with the AMG at 4.72, contradicting the benchmark thesis."
       ]
+    },
+    {
+      "date": "2026-09-22",
+      "issue": "The GT3 ruling pushed it to 4.58, crossing the 4.5 cutoff and putting it in Analog Immortal alongside the AMG GT R. Raised the question of whether that tier was meant to be the benchmark car alone.",
+      "ruling": "Keep the 4.5 cutoff as is. Both cars stay Analog Immortal.",
+      "effect": "Tier is earned by score, not reserved. The AMG keeps the #1 rank on stars (4.72 vs 4.58) rather than by owning a tier to itself."
     }
   ],
   "open_questions": [
+    "Retest pending: all three shifting scores are provisional 2s from a forced-auto track day. Tray will re-run them with manual paddle control and report back - every car on the board is under-rated on shifting until then.",
     "All three shifting scores are provisional 2s (forced auto). Worth a retest before any of them are treated as final.",
-    "Tier thresholds are currently 4.5+ Analog Immortal, 3.5+ Precision Weapon, 2.0+ Optimized Commuter, below that Appliance. The GT3 at 4.58 now shares the top tier with the AMG - raise the Analog Immortal cutoff if that tier is meant to be the AMG alone.",
     "Spec note: the AMG GT R (C190) rack is factually electromechanical, tuned to feel hydraulic. The seat-of-pants score stands; consider restating Holy Trinity item #2 as 'hydraulic-grade steering feel' rather than hydraulic hardware."
-  ]
+  ],
+  "tiers": {
+    "cutoffs": "4.5+ Analog Immortal, 3.5+ Precision Weapon, 2.0+ Optimized Commuter, below that Appliance",
+    "ruling": "Confirmed 2026-09-22. Analog Immortal is not reserved for the AMG alone - a car that earns 4.5+ belongs there."
+  }
 }
